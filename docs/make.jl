@@ -1,4 +1,4 @@
-using Documenter, Mbar4METTS
+using Documenter
 
 makedocs(
     sitename="Mbar4METTS Documentation",
