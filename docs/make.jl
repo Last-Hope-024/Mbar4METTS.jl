@@ -10,5 +10,5 @@ makedocs(
 )
 
 deploydocs(
-    repo = "github.com/Last-Hope-024/Mbar4METTS.jl.git",
+    repo = "https://github.com/Last-Hope-024/Mbar4METTS.jl.git",
 )
