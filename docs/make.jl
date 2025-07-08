@@ -1,14 +1,13 @@
-using Documenter, Mbar4METTS
+using Documenter
+using Mbar4METTS
 
 makedocs(
-    sitename="Mbar4METTS Documentation",
-    modules = [YourPackageName],
+    sitename = "Mbar4METTS",
     format = Documenter.HTML(),
-    pages = [
-        "Home" => "index.md",
-    ],
+    modules = [Mbar4METTS]
 )
 
+
 deploydocs(
-    repo = "https://github.com/Last-Hope-024/Mbar4METTS.jl.git",
-)
+    repo = "github.com/Last-Hope-024/Mbar4METTS.jl"
+    ) 
