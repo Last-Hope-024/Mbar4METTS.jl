@@ -1,0 +1,26 @@
+name: Documentation
+
+on:
+  push:
+    branches:
+      - main  # or 'master', if your default branch is master
+  pull_request:
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: julia-actions/setup-julia@v1
+        with:
+          version: '1.10'  # or your preferred Julia version
+
+      - name: Install dependencies
+        run: |
+          julia --project=docs -e 'using Pkg; Pkg.instantiate()'
+
+      - name: Build and deploy docs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          julia --project=docs docs/make.jl
