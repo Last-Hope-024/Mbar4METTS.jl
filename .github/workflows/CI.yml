@@ -32,9 +32,9 @@ jobs:
           - x64
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Add unregistered dependencies
-        run: julia --project=@. -e 'using Pkg; Pkg.develop(url="https://github.com/username/Dumper.jl")'
+        run: julia --project=@. -e 'using Pkg; Pkg.develop(url="https://github.com/awietek/Dumper.jl")'
 
       - uses: julia-actions/setup-julia@v2
         with:
