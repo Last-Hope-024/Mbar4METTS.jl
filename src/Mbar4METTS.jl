@@ -1,5 +1,6 @@
 module Mbar4METTS
 
-# Write your package code here.
+export prune_analysis
+include("prune.jl")
 
 end
