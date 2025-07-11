@@ -5,6 +5,6 @@ export prune_analysis
 
 
 include("reweight.jl")
-export reweight_observable
+export reweight_observable, reweight_first_dev_temp_observable
 
 end
