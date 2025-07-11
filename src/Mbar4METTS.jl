@@ -1,6 +1,10 @@
 module Mbar4METTS
 
-export prune_analysis
 include("prune.jl")
+export prune_analysis
+
+
+include("reweight.jl")
+export reweight_observable
 
 end
