@@ -67,26 +67,25 @@ end
 
 @doc raw"""
     jackknife_weighted_ratio(data::AbstractVector{Float64}, weights::AbstractVector{Float64})
-
-Compute the jackknife estimate and standard error of a weighted average of the form:
+    
+    Compute the jackknife estimate and standard error of a weighted average of the form:
 
     ⟨A⟩ = ∑ᵢ Aᵢ wᵢ / ∑ᵢ wᵢ
+    
+    using the leave-one-out jackknife method.
 
-using the leave-one-out jackknife method.
+    # Arguments
+    - `data::Vector{Float64}`: The data values Aᵢ to be averaged.
+    - `weights::Vector{Float64}`: Corresponding weights wᵢ for each data point.
 
-# Arguments
-- `data::Vector{Float64}`: The data values Aᵢ to be averaged.
-- `weights::Vector{Float64}`: Corresponding weights wᵢ for each data point.
-
-# Returns
-- `μ::Float64`: The jackknife estimate of ⟨A⟩.
-- `σ::Float64`: The standard error estimated via jackknife:
+    # Returns
+    - `μ::Float64`: The jackknife estimate of ⟨A⟩.
+    - `σ::Float64`: The standard error estimated via jackknife:
   
       σ² = (N - 1) * mean((Aᵢ^{(jack)} - μ)²)
 
-# Details
-This function is optimised for computing observables of the form:
-
+    # Details
+    This function is optimised for computing observables of the form:
     ⟨A⟩ = ∑ Aᵢ wᵢ / ∑ wᵢ
 """
 function jackknife_weighted_ratio(data::AbstractVector{Float64}, weights::AbstractVector{Float64})

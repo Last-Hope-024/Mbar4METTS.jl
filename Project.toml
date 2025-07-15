@@ -4,15 +4,18 @@ authors = ["Rafael D. Soares"]
 version = "1.0.0-DEV"
 
 [deps]
+CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
 DataInterpolations = "82cc6244-b520-54b8-b5a6-8a565e85f1d0"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 Dumper = "e5784763-3d25-4a95-96c2-15edcf1d1c66"
-GLMakie = "e9467ef8-e4e7-5192-8a1a-b1aee30e663a"
 HDF5 = "f67ccb44-e63f-5c2f-98bd-6dc0ccc4ba2f"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Printf = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 TOML = "fa267f1f-6049-4f14-aa54-33bafae1ed76"
+
+[compat]
+CairoMakie = "0.15.3"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
