@@ -44,7 +44,9 @@ function reweight_observable(beta_final::AbstractVector{Float64}, path_file::Abs
     betas = read(f["betas_traj"])[:] #get betas list 
     weights = read(f["norm_metts"])[:, :]  #get weights
     observable = read(f[observable_tag])[:, :]
-    
+    @show betas
+    @show size(betas)
+
     # Interpolate:
     observable_interp = interpolate_observable(beta_final, betas, observable)
     weights_interp = interpolate_observable(beta_final, betas, weights)
@@ -56,9 +58,7 @@ function reweight_observable(beta_final::AbstractVector{Float64}, path_file::Abs
     for (i, b) in enumerate(beta_final)
         wmax = maximum(weights_interp[:, i])
         w = exp.(weights_interp[:, i] .- wmax)
-        
-        @show w
-        
+                
         ob = observable_interp[:, i]
         
         data[i, :] .= jackknife_weighted_ratio(ob, w) #get the error now!
@@ -162,28 +162,34 @@ end
 
 
 function interpolate_observable(beta_final::AbstractVector{Float64}, betas::AbstractVector{Float64}, data::AbstractArray{Float64})
+    n_beta = length(beta_final)
+    n_obs  = size(data, 2)
 
-    dataf = zeros(size(data, 1), length(beta_final))
+    dataf = Matrix{Float64}(undef, n_obs, n_beta)
 
-    for i in 1:size(data, 1)
-        r = CubicSpline(data[i, :], betas; extrapolation=ExtrapolationType.Extension) # we will defntly compute out of the domain but it is not a problem!
-        dataf[i, :] .= r.(beta_final)
+    for j in 1:n_obs
+        r = CubicSpline(data[:, j], betas; extrapolation=ExtrapolationType.Extension)
+        for i in 1:n_beta
+            dataf[j, i] = r(beta_final[i])
+        end
     end
 
     return dataf
 end
 
 function interpolate_observable_dev(beta_final::AbstractVector{Float64}, betas::AbstractVector{Float64}, data::AbstractArray{Float64})
+    n_beta = length(beta_final)
+    n_obs  = size(data, 2)
 
-    dataf = zeros(size(data, 1), length(beta_final))
+    dataf = Matrix{Float64}(undef, n_obs, n_beta)
+    db = min(beta_final[end] - beta_final[end-1], 0.01)
 
-    db = min(beta_final[end] - beta_final[end-1],0.01)
-
-    for i in 1:size(data, 1)
-        r = CubicSpline(data[i, :], betas; extrapolation=ExtrapolationType.Extension) # we will defntly compute out of the domain but it is not a problem!
-        
-        dataf[i, :] .= (r.(beta_final .- 2*db) + 8.0 .* r.(beta_final .+ db) - 8.0 .* r.(beta_final .- db) - r.(beta_final .+ 2*db)) ./(12*db)
-    
+    for j in 1:n_obs
+        r = CubicSpline(data[:, j], betas; extrapolation=ExtrapolationType.Extension)
+        for i in 1:n_beta
+            β = beta_final[i]
+            dataf[j, i] = (r(β - 2*db) + 8r(β + db) - 8r(β - db) - r(β + 2*db)) / (12*db)
+        end
     end
 
     return dataf
