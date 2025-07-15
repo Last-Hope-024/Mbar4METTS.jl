@@ -23,7 +23,7 @@ jobs:
         with:
           version: '1.8'
           prefix: xvfb-run -s '-screen 0 1024x768x24'
-      - uses: julia-actions/cache@v1
+      - uses: julia-actions/cache@v2
         with:
           version: '1.8'
           prefix: xvfb-run -s '-screen 0 1024x768x24'
