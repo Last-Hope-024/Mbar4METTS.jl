@@ -15,7 +15,6 @@ function reweight_first_dev_temp_observable(beta_final::AbstractVector{Float64},
     weights = read(f["norm_metts"])[:, :]  #get weights
     energy = read(f["energy"])[:, :]  #get energie
     observable = read(f[observable_tag])[:, :]
-
     # Interpolate:
     observable_interp = interpolate_observable(beta_final, betas, observable)
     dev_observable_interp = interpolate_observable_dev(beta_final, betas, observable)
@@ -45,19 +44,23 @@ function reweight_observable(beta_final::AbstractVector{Float64}, path_file::Abs
     betas = read(f["betas_traj"])[:] #get betas list 
     weights = read(f["norm_metts"])[:, :]  #get weights
     observable = read(f[observable_tag])[:, :]
-
+    
     # Interpolate:
     observable_interp = interpolate_observable(beta_final, betas, observable)
     weights_interp = interpolate_observable(beta_final, betas, weights)
-
 
     # Final array:
     data = zeros(length(beta_final), 2)
 
     #main loop:
     for (i, b) in enumerate(beta_final)
-        w = exp.(weights_interp[:, i])
+        wmax = maximum(weights_interp[:, i])
+        w = exp.(weights_interp[:, i] .- wmax)
+        
+        @show w
+        
         ob = observable_interp[:, i]
+        
         data[i, :] .= jackknife_weighted_ratio(ob, w) #get the error now!
     end
     return data
@@ -169,7 +172,6 @@ function interpolate_observable(beta_final::AbstractVector{Float64}, betas::Abst
 
     return dataf
 end
-
 
 function interpolate_observable_dev(beta_final::AbstractVector{Float64}, betas::AbstractVector{Float64}, data::AbstractArray{Float64})
 
