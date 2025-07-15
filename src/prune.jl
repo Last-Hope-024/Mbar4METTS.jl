@@ -31,8 +31,9 @@ function prune_analysis(data_file::AbstractString, observable_tags::Vector{Strin
         scatter!(ax, 1:length(vals), vals)
         lines!(ax, 1:length(vals), vals)
     end
-    display(f)
-
+    #display(f)
+    save("tmp.png", f)
+    
     # Ask once for start/end
     print("Global Start Index (default 1): ")
     rd = readline()

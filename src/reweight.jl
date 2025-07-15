@@ -37,7 +37,6 @@ function reweight_first_dev_temp_observable(beta_final::AbstractVector{Float64},
     return data
 end
 
-
 function reweight_observable(beta_final::AbstractVector{Float64}, path_file::AbstractString, observable_tag::AbstractString)
     #Load relevant data 
     f = h5open(path_file, "r")
