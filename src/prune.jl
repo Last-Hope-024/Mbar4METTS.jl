@@ -64,22 +64,19 @@ function prune_analysis(data_file::AbstractString, observable_tags::Vector{Strin
     end
 
     # Copy weights pruned!
+    weights = read(h5file["norm_metts"])
 
-    @show size(read(h5file["norm_metts"]))
-    @show size(read(h5file["norm_metts"])[:,start:endd])
-
-    weights = read(h5file["norm_metts"])[:,start:endd]
+    for k in start:endd
+        dump!(outfile, "norm_metts", weights[:,k])
+    end
     
-    dump!(outfile, "norm_metts", weights)
     
     for tag in observable_tags
         data = read(h5file[tag])
-        @show size(data)
-
-        pruned = data[:, start:endd]
-        @show size(data)
-
-        dump!(outfile, tag, pruned)
+        for k in start:endd
+            pruned = data[:,k]
+            dump!(outfile, tag, pruned)
+        end
     end
     close(h5file)
 
