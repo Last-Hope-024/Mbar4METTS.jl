@@ -40,10 +40,6 @@ function prune_analysis(data_file::AbstractString, observable_tags::Vector{Strin
     rd_stripped = strip(rd)
     start = rd_stripped != "" ? parse(Int, rd_stripped) : 1
 
-    if start < 0
-        start == 1
-    end
-
     print("Global End Index (default end): ")
     rd = readline()
     rd_stripped = strip(rd)
@@ -51,11 +47,9 @@ function prune_analysis(data_file::AbstractString, observable_tags::Vector{Strin
     len = size(read(h5file[observable_tags[1]]), 2)
     endd = rd_stripped != "" ? parse(Int, rd_stripped) : len
 
-    #protect
-    if endd > len
-        endd == len
-    end
-
+    start = max(start, 1)
+    endd = min(endd, len)
+    
     println("Saving data to new file")
     # Save pruned data to a new HDF5 file
     dir = dirname(data_file)
@@ -64,10 +58,7 @@ function prune_analysis(data_file::AbstractString, observable_tags::Vector{Strin
     outfile = DumpFile(pruned_file)
 
     # assure that we write different seeds into the same final file!
-    if isfile(pruned_file)
-
-    else
-        #Only copy in the first time!
+    if !isfile(pruned_file)
         dump!(outfile,"betas_traj",beta_list)
     end
 
