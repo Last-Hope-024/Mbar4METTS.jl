@@ -36,13 +36,24 @@ function prune_analysis(data_file::AbstractString, observable_tags::Vector{Strin
     # Ask once for start/end
     print("Global Start Index (default 1): ")
     rd = readline()
-    start = rd != "" ? parse(Int, rd) : 1
+    rd_stripped = strip(rd)
+    start = rd_stripped != "" ? parse(Int, rd_stripped) : 1
+
+    if start < 0
+        start == 1
+    end
 
     print("Global End Index (default end): ")
     rd = readline()
+    rd_stripped = strip(rd)
     # Assume all observables have same time dimension length change this in the future, if we do this we need to be carefull with the weights we take!
     len = size(read(h5file[observable_tags[1]]), 2)
-    endd = rd != "" ? parse(Int, rd) : len
+    endd = rd_stripped != "" ? parse(Int, rd_stripped) : len
+
+    #protect
+    if endd > len
+        endd == len
+    end
 
     println("Saving data to new file")
     # Save pruned data to a new HDF5 file
