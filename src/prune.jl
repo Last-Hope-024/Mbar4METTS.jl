@@ -45,6 +45,7 @@ function prune_analysis(data_file::AbstractString, observable_tags::Vector{Strin
     rd_stripped = strip(rd)
     # Assume all observables have same time dimension length change this in the future, if we do this we need to be carefull with the weights we take!
     len = size(read(h5file[observable_tags[1]]), 2)
+    @show len
     endd = rd_stripped != "" ? parse(Int, rd_stripped) : len
 
     start = max(start, 1)
@@ -63,7 +64,11 @@ function prune_analysis(data_file::AbstractString, observable_tags::Vector{Strin
     end
 
     # Copy weights pruned!
+
+    @show size(read(h5file["norm_metts"]))
+    
     weights = read(h5file["norm_metts"])[:,start:endd]
+    
     dump!(outfile, "norm_metts", weights)
     
     for tag in observable_tags
