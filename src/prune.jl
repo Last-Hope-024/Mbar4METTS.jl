@@ -5,7 +5,7 @@ using Dumper
 using GLMakie
 
 @doc raw"""
-Prune Analysis
+prune_analysis(data_file::AbstractString, observable_tags::Vector{String}, collapse_beta::Float64)
 
 The MC data of a given observable is plotted for different seeds and user enters start and end;
 The final data is written in a HDF5 File containing everything;

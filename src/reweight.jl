@@ -66,7 +66,7 @@ end
 
 
 @doc raw"""
-    jackknife_weighted_ratio(data::Vector{Float64}, weights::Vector{Float64}) -> (Float64, Float64)
+    jackknife_weighted_ratio(data::AbstractVector{Float64}, weights::AbstractVector{Float64})
 
 Compute the jackknife estimate and standard error of a weighted average of the form:
 
