@@ -1,3 +1,7 @@
+"""
+Rafael D. Soares
+"""
+
 using Printf
 using HDF5
 using Dumper
@@ -44,8 +48,14 @@ function reweight_observable(beta_final::AbstractVector{Float64}, path_file::Abs
     betas = read(f["betas_traj"])[:] #get betas list 
     weights = read(f["norm_metts"])[:, :]  #get weights
     observable = read(f[observable_tag])[:, :]
-    @show betas
-    @show size(betas)
+
+    beta_arg = argmin(abs.(weights[:,1]))
+
+    array = get_equilibration(observable[beta_arg,:])
+
+    weights = weights[:,array]
+
+    observable = observable[:,array]
 
     # Interpolate:
     observable_interp = interpolate_observable(beta_final, betas, observable)
