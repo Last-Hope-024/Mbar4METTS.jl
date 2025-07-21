@@ -19,6 +19,13 @@ function reweight_first_dev_temp_observable(beta_final::AbstractVector{Float64},
     weights = read(f["norm_metts"])[:, :]  #get weights
     energy = read(f["energy"])[:, :]  #get energie
     observable = read(f[observable_tag])[:, :]
+
+    beta_arg = argmin(abs.(weights[:,1]))
+    array = get_equilibration(observable[beta_arg,:])
+    weights = weights[:,array]
+    observable = observable[:,array]
+    energy = energy[:,array]
+
     # Interpolate:
     observable_interp = interpolate_observable(beta_final, betas, observable)
     dev_observable_interp = interpolate_observable_dev(beta_final, betas, observable)
@@ -31,7 +38,8 @@ function reweight_first_dev_temp_observable(beta_final::AbstractVector{Float64},
 
     #main loop:
     for (i, b) in enumerate(beta_final)
-        w = exp.(weights_interp[:, i])
+        wmax = maximum(weights_interp[:, i])
+        w = exp.(weights_interp[:, i] .- wmax) # all weights are smaller than one!
         ob = observable_interp[:, i]
         e = energy_interp[:,i]
         db_do = dev_observable_interp[:,i]
@@ -192,7 +200,7 @@ function interpolate_observable_dev(beta_final::AbstractVector{Float64}, betas::
     n_obs  = size(data, 2)
 
     dataf = Matrix{Float64}(undef, n_obs, n_beta)
-    db = min(beta_final[end] - beta_final[end-1], 0.01)
+    db = beta_final[end] - beta_final[end-1]
 
     for j in 1:n_obs
         r = CubicSpline(data[:, j], betas; extrapolation=ExtrapolationType.Extension)
