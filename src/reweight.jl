@@ -20,11 +20,11 @@ function reweight_first_dev_temp_observable(beta_final::AbstractVector{Float64},
     energy = read(f["energy"])[:, :]  #get energie
     observable = read(f[observable_tag])[:, :]
 
-    beta_arg = argmin(abs.(weights[:,1]))
-    array = get_equilibration(observable[beta_arg,:])
-    weights = weights[:,array]
-    observable = observable[:,array]
-    energy = energy[:,array]
+    # beta_arg = argmin(abs.(weights[:,1]))
+    # array = get_equilibration(observable[beta_arg,:])
+    # weights = weights[:,array]
+    # observable = observable[:,array]
+    # energy = energy[:,array]
 
     # Interpolate:
     observable_interp = interpolate_observable(beta_final, betas, observable)
@@ -59,11 +59,11 @@ function reweight_observable(beta_final::AbstractVector{Float64}, path_file::Abs
 
     beta_arg = argmin(abs.(weights[:,1]))
 
-    array = get_equilibration(observable[beta_arg,:])
+    # array = get_equilibration(observable[beta_arg,:])
 
-    weights = weights[:,array]
+    # weights = weights[:,array]
 
-    observable = observable[:,array]
+    # observable = observable[:,array]
 
     # Interpolate:
     observable_interp = interpolate_observable(beta_final, betas, observable)
