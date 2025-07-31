@@ -1,7 +1,3 @@
-"""
-Rafael D. Soares
-"""
-
 using Printf
 using HDF5
 using Dumper
@@ -57,7 +53,7 @@ function reweight_observable(beta_final::AbstractVector{Float64}, path_file::Abs
     weights = read(f["norm_metts"])[:, :]  #get weights
     observable = read(f[observable_tag])[:, :]
 
-    beta_arg = argmin(abs.(weights[:,1]))
+    # beta_arg = argmin(abs.(weights[:,1]))
 
     # array = get_equilibration(observable[beta_arg,:])
 
@@ -75,15 +71,15 @@ function reweight_observable(beta_final::AbstractVector{Float64}, path_file::Abs
     #main loop:
     for (i, b) in enumerate(beta_final)
         wmax = maximum(weights_interp[:, i])
+
         w = exp.(weights_interp[:, i] .- wmax)
-                
+        
         ob = observable_interp[:, i]
         
         data[i, :] .= jackknife_weighted_ratio(ob, w) #get the error now!
     end
     return data
 end
-
 
 @doc raw"""
     jackknife_weighted_ratio(data::AbstractVector{Float64}, weights::AbstractVector{Float64})
@@ -195,20 +191,20 @@ function interpolate_observable(beta_final::AbstractVector{Float64}, betas::Abst
     return dataf
 end
 
+
 function interpolate_observable_dev(beta_final::AbstractVector{Float64}, betas::AbstractVector{Float64}, data::AbstractArray{Float64})
     n_beta = length(beta_final)
     n_obs  = size(data, 2)
 
     dataf = Matrix{Float64}(undef, n_obs, n_beta)
-    db = beta_final[end] - beta_final[end-1]
+    db = betas[end] - betas[end-1]
 
     for j in 1:n_obs
         r = CubicSpline(data[:, j], betas; extrapolation=ExtrapolationType.Extension)
         for i in 1:n_beta
             β = beta_final[i]
-            dataf[j, i] = (r(β - 2*db) + 8r(β + db) - 8r(β - db) - r(β + 2*db)) / (12*db)
+            dataf[j, i] = (r(β - 2*db) + 8.0*r(β + db) - 8.0*r(β - db) - r(β + 2*db)) / (12*db)
         end
     end
-
     return dataf
 end

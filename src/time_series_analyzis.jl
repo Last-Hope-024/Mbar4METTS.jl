@@ -1,7 +1,3 @@
-"""
-Rafael D. Soares
-"""
-
 using FFTW
 using Statistics
 

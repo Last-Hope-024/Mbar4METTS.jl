@@ -1,7 +1,3 @@
-"""
-Rafael D. Soares
-"""
-
 using Printf
 using TOML
 using HDF5
