@@ -12,9 +12,9 @@ function reweight_first_dev_temp_observable(beta_final::AbstractVector{Float64},
 
     # ingridients to do it:
     betas = read(f["betas_traj"])[:] #get betas list 
-    weights = read(f["norm_metts"])[:, cut1:]  #get weights
-    energy = read(f["energy"])[:, cut1:]  #get energie
-    observable = read(f[observable_tag])[:, cut1:]
+    weights = read(f["norm_metts"])[:, cut1:end]  #get weights
+    energy = read(f["energy"])[:, cut1:end]  #get energie
+    observable = read(f[observable_tag])[:, cut1:end]
 
     # beta_arg = argmin(abs.(weights[:,1]))
     # array = get_equilibration(observable[beta_arg,:])
@@ -37,7 +37,7 @@ function reweight_first_dev_temp_observable(beta_final::AbstractVector{Float64},
     data = zeros(length(beta_final), 2)
 
     #main loop:
-    for i idx1:idx2
+    for i in idx1:idx2
         wmax = maximum(weights_interp[:, i])
         w = exp.(weights_interp[:, i] .- wmax) # all weights are smaller than one!
         ob = observable_interp[:, i]
@@ -54,8 +54,8 @@ function reweight_observable(beta_final::AbstractVector{Float64}, path_file::Abs
 
     # ingridients to do it:
     betas = read(f["betas_traj"])[:] #get betas list 
-    weights = read(f["norm_metts"])[:, cut1:]  #get weights
-    observable = read(f[observable_tag])[:, cut1:]
+    weights = read(f["norm_metts"])[:, cut1:end]  #get weights
+    observable = read(f[observable_tag])[:, cut1:end]
 
     # beta_arg = argmin(abs.(weights[:,1]))
     # array = get_equilibration(observable[beta_arg,:])
