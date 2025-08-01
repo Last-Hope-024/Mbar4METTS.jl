@@ -6,34 +6,38 @@ using LinearAlgebra
 using Statistics
 
 
-function reweight_first_dev_temp_observable(beta_final::AbstractVector{Float64}, path_file::AbstractString, observable_tag::AbstractString)
+function reweight_first_dev_temp_observable(beta_final::AbstractVector{Float64}, path_file::AbstractString, observable_tag::AbstractString; cut1::Int=1)
     #Load relevant data 
     f = h5open(path_file, "r")
 
     # ingridients to do it:
     betas = read(f["betas_traj"])[:] #get betas list 
-    weights = read(f["norm_metts"])[:, :]  #get weights
-    energy = read(f["energy"])[:, :]  #get energie
-    observable = read(f[observable_tag])[:, :]
+    weights = read(f["norm_metts"])[:, cut1:]  #get weights
+    energy = read(f["energy"])[:, cut1:]  #get energie
+    observable = read(f[observable_tag])[:, cut1:]
 
     # beta_arg = argmin(abs.(weights[:,1]))
     # array = get_equilibration(observable[beta_arg,:])
     # weights = weights[:,array]
     # observable = observable[:,array]
     # energy = energy[:,array]
+    ########## Indicies that bound the values of ##############################
+    idx1 = argmin( abs.(beta_final .-betas[1]))
+    idx2 = argmin( abs.(beta_final .-betas[end]))
+
 
     # Interpolate:
-    observable_interp = interpolate_observable(beta_final, betas, observable)
-    dev_observable_interp = interpolate_observable_dev(beta_final, betas, observable)
-    weights_interp = interpolate_observable(beta_final, betas, weights)
-    energy_interp = interpolate_observable(beta_final, betas, energy)
+    observable_interp = interpolate_observable(beta_final, betas, observable,idx1,idx2)
+    dev_observable_interp = interpolate_observable_dev(beta_final, betas, observable,idx1,idx2)
+    weights_interp = interpolate_observable(beta_final, betas, weights,idx1,idx2)
+    energy_interp = interpolate_observable(beta_final, betas, energy,idx1,idx2)
 
 
     # Final array:
     data = zeros(length(beta_final), 2)
 
     #main loop:
-    for (i, b) in enumerate(beta_final)
+    for i idx1:idx2
         wmax = maximum(weights_interp[:, i])
         w = exp.(weights_interp[:, i] .- wmax) # all weights are smaller than one!
         ob = observable_interp[:, i]
@@ -44,38 +48,36 @@ function reweight_first_dev_temp_observable(beta_final::AbstractVector{Float64},
     return data
 end
 
-function reweight_observable(beta_final::AbstractVector{Float64}, path_file::AbstractString, observable_tag::AbstractString)
+function reweight_observable(beta_final::AbstractVector{Float64}, path_file::AbstractString, observable_tag::AbstractString; cut1::Int=1)
     #Load relevant data 
     f = h5open(path_file, "r")
 
     # ingridients to do it:
     betas = read(f["betas_traj"])[:] #get betas list 
-    weights = read(f["norm_metts"])[:, :]  #get weights
-    observable = read(f[observable_tag])[:, :]
+    weights = read(f["norm_metts"])[:, cut1:]  #get weights
+    observable = read(f[observable_tag])[:, cut1:]
 
     # beta_arg = argmin(abs.(weights[:,1]))
-
     # array = get_equilibration(observable[beta_arg,:])
-
     # weights = weights[:,array]
-
     # observable = observable[:,array]
+    ########################################
+    ########## Indicies that bound the values of ##############################
+    idx1 = argmin( abs.(beta_final .-betas[1]))
+    idx2 = argmin( abs.(beta_final .-betas[end]))
 
     # Interpolate:
-    observable_interp = interpolate_observable(beta_final, betas, observable)
-    weights_interp = interpolate_observable(beta_final, betas, weights)
+    observable_interp = interpolate_observable(beta_final, betas, observable,idx1,idx2)
+    weights_interp = interpolate_observable(beta_final, betas, weights,idx1,idx2)
 
     # Final array:
     data = zeros(length(beta_final), 2)
 
     #main loop:
-    for (i, b) in enumerate(beta_final)
+    for i in idx1:idx2
         wmax = maximum(weights_interp[:, i])
-
         w = exp.(weights_interp[:, i] .- wmax)
-        
         ob = observable_interp[:, i]
-        
         data[i, :] .= jackknife_weighted_ratio(ob, w) #get the error now!
     end
     return data
@@ -110,7 +112,7 @@ function jackknife_weighted_ratio(data::AbstractVector{Float64}, weights::Abstra
 
     @assert length(weights) == N "data and weights must be the same length"
 
-    # Precompute full sums
+    # Precompute full sums using logsum
     total_weighted = dot(data, weights)
     total_weights = sum(weights)
 
@@ -175,7 +177,7 @@ function jackknife_weighted_ratio_derivative(data::AbstractVector{Float64}, dev_
 end
 
 
-function interpolate_observable(beta_final::AbstractVector{Float64}, betas::AbstractVector{Float64}, data::AbstractArray{Float64})
+function interpolate_observable(beta_final::AbstractVector{Float64}, betas::AbstractVector{Float64}, data::AbstractArray{Float64}, idx1::Int, idx2::Int)
     n_beta = length(beta_final)
     n_obs  = size(data, 2)
 
@@ -183,16 +185,15 @@ function interpolate_observable(beta_final::AbstractVector{Float64}, betas::Abst
 
     for j in 1:n_obs
         r = CubicSpline(data[:, j], betas; extrapolation=ExtrapolationType.Extension)
-        for i in 1:n_beta
+        for i in idx1:idx2
             dataf[j, i] = r(beta_final[i])
         end
     end
-
     return dataf
 end
 
 
-function interpolate_observable_dev(beta_final::AbstractVector{Float64}, betas::AbstractVector{Float64}, data::AbstractArray{Float64})
+function interpolate_observable_dev(beta_final::AbstractVector{Float64}, betas::AbstractVector{Float64}, data::AbstractArray{Float64}, idx1::Int, idx2::Int)
     n_beta = length(beta_final)
     n_obs  = size(data, 2)
 
@@ -201,7 +202,7 @@ function interpolate_observable_dev(beta_final::AbstractVector{Float64}, betas::
 
     for j in 1:n_obs
         r = CubicSpline(data[:, j], betas; extrapolation=ExtrapolationType.Extension)
-        for i in 1:n_beta
+        for i in idx1:idx2
             β = beta_final[i]
             dataf[j, i] = (r(β - 2*db) + 8.0*r(β + db) - 8.0*r(β - db) - r(β + 2*db)) / (12*db)
         end
