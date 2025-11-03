@@ -6,6 +6,48 @@ using LinearAlgebra
 using Statistics
 
 
+# function reweight_first_dev_temp_observable(beta_final::AbstractVector{Float64}, path_file::AbstractString, observable_tag::AbstractString; cut1::Int=1)
+#     #Load relevant data 
+#     f = h5open(path_file, "r")
+
+#     # ingridients to do it:
+#     betas = read(f["betas_traj"])[:] #get betas list 
+#     weights = read(f["norm_metts"])[:, cut1:end]  #get weights
+#     energy = read(f["energy"])[:, cut1:end]  #get energie
+#     observable = read(f[observable_tag])[:, cut1:end]
+
+#     # beta_arg = argmin(abs.(weights[:,1]))
+#     # array = get_equilibration(observable[beta_arg,:])
+#     # weights = weights[:,array]
+#     # observable = observable[:,array]
+#     # energy = energy[:,array]
+#     ########## Indicies that bound the values of ##############################
+#     idx1 = argmin( abs.(beta_final .-betas[1]))
+#     idx2 = argmin( abs.(beta_final .-betas[end]))
+
+#     # Interpolate:
+#     observable_interp = interpolate_observable(beta_final, betas, observable,idx1,idx2)
+#     dev_observable_interp = interpolate_observable_dev(beta_final, betas, observable,idx1,idx2)
+#     weights_interp = interpolate_observable(beta_final, betas, weights,idx1,idx2)
+#     energy_interp = interpolate_observable(beta_final, betas, energy,idx1,idx2)
+
+
+#     # Final array:
+#     data = zeros(length(beta_final), 2)
+
+#     #main loop:
+#     for i in idx1:idx2
+#         wmax = maximum(weights_interp[:, i])
+#         w = exp.(weights_interp[:, i] .- wmax) # all weights are smaller than one!
+#         ob = observable_interp[:, i]
+#         e = energy_interp[:,i]
+#         db_do = dev_observable_interp[:,i]
+#         data[i, :] .= jackknife_weighted_ratio_derivative(ob, db_do,e,w) #get the error now!
+#     end
+#     return data
+# end
+
+
 function reweight_first_dev_temp_observable(beta_final::AbstractVector{Float64}, path_file::AbstractString, observable_tag::AbstractString; cut1::Int=1)
     #Load relevant data 
     f = h5open(path_file, "r")
@@ -25,12 +67,11 @@ function reweight_first_dev_temp_observable(beta_final::AbstractVector{Float64},
     idx1 = argmin( abs.(beta_final .-betas[1]))
     idx2 = argmin( abs.(beta_final .-betas[end]))
 
-
     # Interpolate:
-    observable_interp = interpolate_observable(beta_final, betas, observable,idx1,idx2)
+    #observable_interp = interpolate_observable(beta_final, betas, observable,idx1,idx2)
     dev_observable_interp = interpolate_observable_dev(beta_final, betas, observable,idx1,idx2)
     weights_interp = interpolate_observable(beta_final, betas, weights,idx1,idx2)
-    energy_interp = interpolate_observable(beta_final, betas, energy,idx1,idx2)
+    #energy_interp = interpolate_observable(beta_final, betas, energy,idx1,idx2)
 
 
     # Final array:
@@ -40,10 +81,10 @@ function reweight_first_dev_temp_observable(beta_final::AbstractVector{Float64},
     for i in idx1:idx2
         wmax = maximum(weights_interp[:, i])
         w = exp.(weights_interp[:, i] .- wmax) # all weights are smaller than one!
-        ob = observable_interp[:, i]
-        e = energy_interp[:,i]
+        #ob = observable_interp[:, i]
+        #e = energy_interp[:,i]
         db_do = dev_observable_interp[:,i]
-        data[i, :] .= jackknife_weighted_ratio_derivative(ob, db_do,e,w) #get the error now!
+        data[i, :] .= jackknife_weighted_ratio(db_do,w) #get the error now!
     end
     return data
 end
@@ -150,7 +191,7 @@ function jackknife_weighted_ratio_derivative(data::AbstractVector{Float64}, dev_
     total_weights = sum(weights) # weights
 
     # Allocate jackknife estimates
-    estimates = similar(data)
+    estimates = similar(data)   
 
     # Leave-one-out ratio estimates
     for i in 1:N
@@ -165,7 +206,6 @@ function jackknife_weighted_ratio_derivative(data::AbstractVector{Float64}, dev_
         denominator = total_weights - weights[i]
 
         energy_mean = energy_num / denominator
-
 
         estimates[i] = (data_num * energy_mean - data_product_energy_num + dev_numerator) / denominator
     end
@@ -184,7 +224,7 @@ function interpolate_observable(beta_final::AbstractVector{Float64}, betas::Abst
     dataf = Matrix{Float64}(undef, n_obs, n_beta)
 
     for j in 1:n_obs
-        r = CubicSpline(data[:, j], betas; extrapolation=ExtrapolationType.Extension)
+        r = AkimaInterpolation(data[:, j], betas; extrapolation=ExtrapolationType.Extension)
         for i in idx1:idx2
             dataf[j, i] = r(beta_final[i])
         end
@@ -198,10 +238,9 @@ function interpolate_observable_dev(beta_final::AbstractVector{Float64}, betas::
     n_obs  = size(data, 2)
 
     dataf = Matrix{Float64}(undef, n_obs, n_beta)
-    db = betas[end] - betas[end-1]
-
+    db =  betas[end] -  betas[end-1]
     for j in 1:n_obs
-        r = CubicSpline(data[:, j], betas; extrapolation=ExtrapolationType.Extension)
+        r = AkimaInterpolation(data[:, j], betas; extrapolation=ExtrapolationType.Extension)
         for i in idx1:idx2
             β = beta_final[i]
             dataf[j, i] = (r(β - 2*db) + 8.0*r(β + db) - 8.0*r(β - db) - r(β + 2*db)) / (12*db)

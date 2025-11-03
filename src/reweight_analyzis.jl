@@ -29,5 +29,5 @@ function compute_ess(beta_final::AbstractVector{Float64}, path_file::AbstractStr
         data2[i] .= mean(w) 
     end
 
-    return (data .* data) ./ data2
+    return (data .* data) ./ data2 * 1.0
 end

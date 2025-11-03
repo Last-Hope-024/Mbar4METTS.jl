@@ -15,4 +15,7 @@ export reweight_observable, reweight_first_dev_temp_observable
 include("reweight_analyzis.jl")
 export compute_ess
 
+include("kbl_divergence.jl")
+export kbl_divergence
+
 end
